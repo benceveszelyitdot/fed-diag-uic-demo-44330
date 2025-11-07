@@ -22,13 +22,11 @@ const generateHistoricalData = (baseValue: number, variance: number, points: num
 const Index = () => {
   const [temp1, setTemp1] = useState(22.5);
   const [temp2, setTemp2] = useState(45.3);
-  const [water1, setWater1] = useState(76);
-  const [water2, setWater2] = useState(28);
+  const [waterLevel, setWaterLevel] = useState(50);
   
   const [temp1History, setTemp1History] = useState(() => generateHistoricalData(22.5, 5));
   const [temp2History, setTemp2History] = useState(() => generateHistoricalData(45.3, 8));
-  const [water1History, setWater1History] = useState(() => generateHistoricalData(76, 10));
-  const [water2History, setWater2History] = useState(() => generateHistoricalData(28, 10));
+  const [waterHistory, setWaterHistory] = useState(() => generateHistoricalData(50, 20));
 
   // Simulate real-time updates
   useEffect(() => {
@@ -51,18 +49,11 @@ const Index = () => {
         return clampedVal;
       });
 
-      // Update water levels
-      setWater1(prev => {
-        const newVal = prev + (Math.random() - 0.5) * 4;
-        const clampedVal = Math.max(65, Math.min(85, newVal));
-        setWater1History(prev => [...prev.slice(1), { time: timeStr, value: clampedVal }]);
-        return clampedVal;
-      });
-
-      setWater2(prev => {
-        const newVal = prev + (Math.random() - 0.5) * 4;
-        const clampedVal = Math.max(18, Math.min(35, newVal));
-        setWater2History(prev => [...prev.slice(1), { time: timeStr, value: clampedVal }]);
+      // Update water level
+      setWaterLevel(prev => {
+        const newVal = prev + (Math.random() - 0.5) * 5;
+        const clampedVal = Math.max(10, Math.min(90, newVal));
+        setWaterHistory(prev => [...prev.slice(1), { time: timeStr, value: clampedVal }]);
         return clampedVal;
       });
     }, 5000); // Update every 5 seconds
@@ -115,35 +106,18 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Water Level Indicators */}
+          {/* Water Level Indicator */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <WaterLevelIndicator 
-                label="Water Tank 1"
-                level={water1}
-                alertLevel={75}
-              />
-              <HistoricalChart 
-                title="Water Level 1 History"
-                data={water1History}
-                color="hsl(var(--primary))"
-                unit="%"
-              />
-            </div>
-
-            <div className="space-y-4">
-              <WaterLevelIndicator 
-                label="Water Tank 2"
-                level={water2}
-                alertLevel={25}
-              />
-              <HistoricalChart 
-                title="Water Level 2 History"
-                data={water2History}
-                color="hsl(var(--accent))"
-                unit="%"
-              />
-            </div>
+            <WaterLevelIndicator 
+              label="Water Tank"
+              level={waterLevel}
+            />
+            <HistoricalChart 
+              title="Water Level History"
+              data={waterHistory}
+              color="hsl(var(--primary))"
+              unit="%"
+            />
           </div>
         </div>
       </div>

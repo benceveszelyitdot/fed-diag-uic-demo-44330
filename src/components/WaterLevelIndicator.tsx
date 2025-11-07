@@ -4,10 +4,9 @@ import { useEffect, useState } from "react";
 interface WaterLevelIndicatorProps {
   label: string;
   level: number; // 0-100
-  alertLevel: number; // 25 or 75
 }
 
-export const WaterLevelIndicator = ({ label, level, alertLevel }: WaterLevelIndicatorProps) => {
+export const WaterLevelIndicator = ({ label, level }: WaterLevelIndicatorProps) => {
   const [displayLevel, setDisplayLevel] = useState(0);
   
   useEffect(() => {
@@ -15,7 +14,9 @@ export const WaterLevelIndicator = ({ label, level, alertLevel }: WaterLevelIndi
     return () => clearTimeout(timer);
   }, [level]);
 
-  const isAtAlertLevel = Math.abs(displayLevel - alertLevel) < 5;
+  const isAtLowLevel = Math.abs(displayLevel - 25) < 5;
+  const isAtHighLevel = Math.abs(displayLevel - 75) < 5;
+  const isAtAlertLevel = isAtLowLevel || isAtHighLevel;
 
   return (
     <Card className="p-6 bg-card border-border">
@@ -23,13 +24,23 @@ export const WaterLevelIndicator = ({ label, level, alertLevel }: WaterLevelIndi
       <div className="flex items-end justify-center gap-8">
         {/* Tank visualization */}
         <div className="relative w-32 h-64 bg-muted rounded-lg border-4 border-border overflow-hidden">
-          {/* Alert level line */}
+          {/* 75% Alert level line */}
           <div 
             className="absolute left-0 right-0 border-t-2 border-dashed border-accent z-10"
-            style={{ bottom: `${alertLevel}%` }}
+            style={{ bottom: '75%' }}
           >
             <span className="absolute right-2 -top-3 text-xs font-medium text-accent">
-              {alertLevel}%
+              75%
+            </span>
+          </div>
+
+          {/* 25% Alert level line */}
+          <div 
+            className="absolute left-0 right-0 border-t-2 border-dashed border-accent z-10"
+            style={{ bottom: '25%' }}
+          >
+            <span className="absolute right-2 -top-3 text-xs font-medium text-accent">
+              25%
             </span>
           </div>
 
@@ -45,17 +56,15 @@ export const WaterLevelIndicator = ({ label, level, alertLevel }: WaterLevelIndi
           </div>
 
           {/* Measurement lines */}
-          {[0, 25, 50, 75, 100].map((mark) => (
+          {[0, 50, 100].map((mark) => (
             <div
               key={mark}
               className="absolute left-0 right-0 border-t border-border/30"
               style={{ bottom: `${mark}%` }}
             >
-              {mark !== alertLevel && (
-                <span className="absolute left-2 -top-2 text-xs text-muted-foreground">
-                  {mark}
-                </span>
-              )}
+              <span className="absolute left-2 -top-2 text-xs text-muted-foreground">
+                {mark}
+              </span>
             </div>
           ))}
         </div>
@@ -64,8 +73,11 @@ export const WaterLevelIndicator = ({ label, level, alertLevel }: WaterLevelIndi
         <div className="text-center">
           <div className="text-4xl font-bold text-foreground">{displayLevel.toFixed(1)}</div>
           <div className="text-sm text-muted-foreground">%</div>
-          {isAtAlertLevel && (
-            <div className="mt-2 text-xs font-medium text-accent">Alert Level</div>
+          {isAtLowLevel && (
+            <div className="mt-2 text-xs font-medium text-accent">Low Alert (25%)</div>
+          )}
+          {isAtHighLevel && (
+            <div className="mt-2 text-xs font-medium text-accent">High Alert (75%)</div>
           )}
         </div>
       </div>

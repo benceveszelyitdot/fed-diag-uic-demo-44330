@@ -21,6 +21,12 @@ let lampStates = {
   musor: false
 };
 
+let sensorData = {
+  waterLevel: 2, // 1, 2, or 3 (representing 1/3, 2/3, 3/3)
+  temp1: 0,      // Temperature in celsius (will be divided by 10 from MCU response)
+  temp2: 0       // Temperature in celsius (will be divided by 10 from MCU response)
+};
+
 // Initialize UART connection
 function initUART() {
   try {
@@ -36,14 +42,34 @@ function initUART() {
       console.log('UART connection opened on', UART_PORT);
     });
 
-    // Monitor incoming data for <UICV> message
+    // Monitor incoming data from MCU
     serialPort.on('data', (data: Buffer) => {
       const message = data.toString();
       console.log('Received from MCU:', message);
       
+      // Handle UICV message
       if (message.includes('<UICV>')) {
         console.log('UICV detected - triggering reception mode');
         handleUICV();
+      }
+      
+      // Parse RDI response: <RDI:xyzw>
+      const rdiMatch = message.match(/<RDI:(\d)(\d)(\d)(\d)>/);
+      if (rdiMatch) {
+        const x = parseInt(rdiMatch[1]);
+        // x=1 means 1/3 (low), x=0 means 2/3 or above
+        sensorData.waterLevel = x === 1 ? 1 : 2;
+        console.log('Water level updated:', sensorData.waterLevel);
+        broadcastSensorData();
+      }
+      
+      // Parse RTT response: <RTT:xxxx,yyyy>
+      const rttMatch = message.match(/<RTT:(\d+),(\d+)>/);
+      if (rttMatch) {
+        sensorData.temp1 = parseInt(rttMatch[1]) / 10;
+        sensorData.temp2 = parseInt(rttMatch[2]) / 10;
+        console.log('Temperatures updated:', sensorData.temp1, sensorData.temp2);
+        broadcastSensorData();
       }
     });
 
@@ -111,6 +137,33 @@ function broadcastLampStates() {
   });
 }
 
+// Broadcast sensor data to all WebSocket clients
+function broadcastSensorData() {
+  const message = JSON.stringify({
+    type: 'sensorUpdate',
+    sensors: sensorData
+  });
+
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1) { // OPEN state
+      client.send(message);
+    }
+  });
+}
+
+// Periodic polling of MCU for sensor data (every 10 seconds)
+function startSensorPolling() {
+  setInterval(async () => {
+    try {
+      await sendToMCU('<RDI>');
+      await delay(50);
+      await sendToMCU('<RTT>');
+    } catch (error) {
+      console.error('Error polling sensors:', error);
+    }
+  }, 10000); // 10 seconds
+}
+
 // API Endpoints
 
 // Play audio sequence
@@ -156,14 +209,24 @@ app.get('/api/lamps', (req, res) => {
   res.json(lampStates);
 });
 
+// Get current sensor data
+app.get('/api/sensors', (req, res) => {
+  res.json(sensorData);
+});
+
 // WebSocket connection handling
 wss.on('connection', (ws) => {
   console.log('WebSocket client connected');
   
-  // Send current lamp states to new client
+  // Send current lamp states and sensor data to new client
   ws.send(JSON.stringify({
     type: 'lampUpdate',
     lamps: lampStates
+  }));
+  
+  ws.send(JSON.stringify({
+    type: 'sensorUpdate',
+    sensors: sensorData
   }));
 
   ws.on('close', () => {
@@ -178,6 +241,7 @@ server.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
   console.log(`WebSocket server ready for connections`);
   initUART();
+  startSensorPolling();
 });
 
 // Graceful shutdown

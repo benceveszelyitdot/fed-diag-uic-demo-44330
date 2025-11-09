@@ -22,53 +22,57 @@ const generateHistoricalData = (baseValue: number, variance: number, points: num
 const Index = () => {
   const [temp1, setTemp1] = useState(22.5);
   const [temp2, setTemp2] = useState(35.3);
-  const [waterLevel, setWaterLevel] = useState(75); // Default 75%
+  const [waterLevel, setWaterLevel] = useState(2); // 1, 2, or 3
   
   const [temp1History, setTemp1History] = useState(() => generateHistoricalData(22.5, 5));
   const [temp2History, setTemp2History] = useState(() => generateHistoricalData(35.3, 8));
   const [waterHistory, setWaterHistory] = useState(() => 
     Array(20).fill(null).map((_, i) => ({
       time: new Date(Date.now() - (19 - i) * 5 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      value: 75
+      value: 2
     }))
   );
 
-  // Simulate real-time updates
+  // Connect to backend WebSocket for real-time sensor updates
   useEffect(() => {
-    const interval = setInterval(() => {
+    const ws = new WebSocket('ws://localhost:3001');
+    
+    ws.onopen = () => {
+      console.log('Connected to sensor WebSocket');
+    };
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
       const now = new Date();
       const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-      // Update temperatures
-      setTemp1(prev => {
-        const newVal = prev + (Math.random() - 0.5) * 2;
-        const clampedVal = Math.max(18, Math.min(28, newVal));
-        setTemp1History(prev => [...prev.slice(1), { time: timeStr, value: clampedVal }]);
-        return clampedVal;
-      });
-
-      setTemp2(prev => {
-        const newVal = prev + (Math.random() - 0.5) * 3;
-        const clampedVal = Math.max(20, Math.min(50, newVal));
-        setTemp2History(prev => [...prev.slice(1), { time: timeStr, value: clampedVal }]);
-        return clampedVal;
-      });
-
-      // Update water level - only 25%, 50%, or 75%
-      setWaterLevel(prev => {
-        const possibleValues = [25, 50, 75];
-        const randomChange = Math.random();
-        // 80% chance to stay the same, 20% chance to change
-        let newVal = prev;
-        if (randomChange > 0.8) {
-          newVal = possibleValues[Math.floor(Math.random() * possibleValues.length)];
-        }
-        setWaterHistory(prevHistory => [...prevHistory.slice(1), { time: timeStr, value: newVal }]);
-        return newVal;
-      });
-    }, 5000); // Update every 5 seconds
-
-    return () => clearInterval(interval);
+      
+      if (data.type === 'sensorUpdate') {
+        const { sensors } = data;
+        
+        // Update temperatures
+        setTemp1(sensors.temp1);
+        setTemp1History(prev => [...prev.slice(1), { time: timeStr, value: sensors.temp1 }]);
+        
+        setTemp2(sensors.temp2);
+        setTemp2History(prev => [...prev.slice(1), { time: timeStr, value: sensors.temp2 }]);
+        
+        // Update water level (1, 2, or 3)
+        setWaterLevel(sensors.waterLevel);
+        setWaterHistory(prev => [...prev.slice(1), { time: timeStr, value: sensors.waterLevel }]);
+      }
+    };
+    
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+    
+    ws.onclose = () => {
+      console.log('Disconnected from sensor WebSocket');
+    };
+    
+    return () => {
+      ws.close();
+    };
   }, []);
 
   return (
@@ -125,7 +129,7 @@ const Index = () => {
               title="Vízszint előző értékei"
               data={waterHistory}
               color="hsl(var(--primary))"
-              unit="%"
+              unit="/3"
             />
           </div>
         </div>

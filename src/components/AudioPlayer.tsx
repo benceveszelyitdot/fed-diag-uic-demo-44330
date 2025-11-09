@@ -54,7 +54,48 @@ export const AudioPlayer = () => {
     <Card className="p-6 bg-card border-border">
       <h2 className="text-lg font-semibold mb-4 text-foreground">UIC TTS bemondás</h2>
       
-      <div className="flex items-center gap-4 mb-4">
+      <div className="space-y-4">
+        {/* Control Buttons */}
+        <div className="flex items-center gap-3">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".mp3,.wav,audio/mpeg,audio/wav"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+          
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            variant="outline"
+            size="lg"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Hangfájl feltöltése
+          </Button>
+          
+          <Button
+            onClick={handlePlay}
+            disabled={!audioFile || isPlaying}
+            size="lg"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
+          >
+            <Play className="w-5 h-5 mr-2" />
+            Bemondás indítása
+          </Button>
+
+          <Button
+            onClick={handleStop}
+            disabled={!audioFile || !isPlaying}
+            size="lg"
+            variant="destructive"
+            className="disabled:opacity-50"
+          >
+            <Square className="w-5 h-5 mr-2" />
+            Bemondás leállítása
+          </Button>
+        </div>
+
         {/* Indicator Lamps */}
         <div className="flex gap-4">
           <div className="flex flex-col items-center gap-1">
@@ -66,59 +107,6 @@ export const AudioPlayer = () => {
             <span className="text-xs text-muted-foreground font-medium">MŰSOR</span>
           </div>
         </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".mp3,.wav,audio/mpeg,audio/wav"
-          onChange={handleFileUpload}
-          className="hidden"
-        />
-        
-        {!audioFile ? (
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            size="lg"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <Upload className="w-5 h-5 mr-2" />
-            Upload Audio
-          </Button>
-        ) : (
-          <>
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              variant="outline"
-              size="lg"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Audio
-            </Button>
-            
-            <Button
-              onClick={handlePlay}
-              disabled={isPlaying}
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
-            >
-              <Play className="w-5 h-5 mr-2" />
-              Play
-            </Button>
-
-            <Button
-              onClick={handleStop}
-              disabled={!isPlaying}
-              size="lg"
-              variant="destructive"
-              className="disabled:opacity-50"
-            >
-              <Square className="w-5 h-5 mr-2" />
-              Stop
-            </Button>
-          </>
-        )}
       </div>
 
       {audioFile && (

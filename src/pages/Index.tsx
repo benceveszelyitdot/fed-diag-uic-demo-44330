@@ -21,11 +21,11 @@ const generateHistoricalData = (baseValue: number, variance: number, points: num
 
 const Index = () => {
   const [temp1, setTemp1] = useState(22.5);
-  const [temp2, setTemp2] = useState(45.3);
+  const [temp2, setTemp2] = useState(35.3);
   const [waterLevel, setWaterLevel] = useState(75); // Default 75%
   
   const [temp1History, setTemp1History] = useState(() => generateHistoricalData(22.5, 5));
-  const [temp2History, setTemp2History] = useState(() => generateHistoricalData(45.3, 8));
+  const [temp2History, setTemp2History] = useState(() => generateHistoricalData(35.3, 8));
   const [waterHistory, setWaterHistory] = useState(() => 
     Array(20).fill(null).map((_, i) => ({
       time: new Date(Date.now() - (19 - i) * 5 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
@@ -49,7 +49,7 @@ const Index = () => {
 
       setTemp2(prev => {
         const newVal = prev + (Math.random() - 0.5) * 3;
-        const clampedVal = Math.max(40, Math.min(55, newVal));
+        const clampedVal = Math.max(20, Math.min(50, newVal));
         setTemp2History(prev => [...prev.slice(1), { time: timeStr, value: clampedVal }]);
         return clampedVal;
       });
@@ -104,7 +104,7 @@ const Index = () => {
                 label="Hőmérő 2" 
                 temperature={temp2}
                 min={0}
-                max={100}
+                max={50}
               />
               <HistoricalChart 
                 title="Hőmérő 2 előző értékei"

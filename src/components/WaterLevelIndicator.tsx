@@ -15,8 +15,6 @@ export const WaterLevelIndicator = ({ label, level }: WaterLevelIndicatorProps) 
   }, [level]);
 
   const isAtLowLevel = Math.abs(displayLevel - 25) < 5;
-  const isAtHighLevel = Math.abs(displayLevel - 75) < 5;
-  const isAtAlertLevel = isAtLowLevel || isAtHighLevel;
 
   return (
     <Card className="p-6 bg-card border-border">
@@ -24,16 +22,6 @@ export const WaterLevelIndicator = ({ label, level }: WaterLevelIndicatorProps) 
       <div className="flex items-end justify-center gap-8">
         {/* Tank visualization */}
         <div className="relative w-32 h-64 bg-muted rounded-lg border-4 border-border overflow-hidden">
-          {/* 75% Alert level line */}
-          <div 
-            className="absolute left-0 right-0 border-t-2 border-dashed border-accent z-10"
-            style={{ bottom: '75%' }}
-          >
-            <span className="absolute right-2 -top-3 text-xs font-medium text-accent">
-              75%
-            </span>
-          </div>
-
           {/* 25% Alert level line */}
           <div 
             className="absolute left-0 right-0 border-t-2 border-dashed border-accent z-10"
@@ -47,7 +35,7 @@ export const WaterLevelIndicator = ({ label, level }: WaterLevelIndicatorProps) 
           {/* Water */}
           <div 
             className={`absolute bottom-0 left-0 right-0 transition-all duration-1000 ${
-              isAtAlertLevel ? 'bg-accent' : 'bg-primary'
+              isAtLowLevel ? 'bg-accent' : 'bg-primary'
             }`}
             style={{ height: `${displayLevel}%` }}
           >
@@ -75,9 +63,6 @@ export const WaterLevelIndicator = ({ label, level }: WaterLevelIndicatorProps) 
           <div className="text-sm text-muted-foreground">%</div>
           {isAtLowLevel && (
             <div className="mt-2 text-xs font-medium text-accent">Low Alert (25%)</div>
-          )}
-          {isAtHighLevel && (
-            <div className="mt-2 text-xs font-medium text-accent">High Alert (75%)</div>
           )}
         </div>
       </div>

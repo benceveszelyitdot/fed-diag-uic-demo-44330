@@ -15,6 +15,10 @@ export const AudioPlayer = () => {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && (file.type === "audio/mp3" || file.type === "audio/mpeg" || file.type === "audio/wav")) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
       setAudioFile(file);
       setIsPlaying(false);
       toast.success("Audio file loaded successfully");
@@ -117,6 +121,7 @@ export const AudioPlayer = () => {
           <audio
             ref={audioRef}
             src={URL.createObjectURL(audioFile)}
+            preload="metadata"
             onEnded={() => setIsPlaying(false)}
             onPause={() => setIsPlaying(false)}
             onPlay={() => setIsPlaying(true)}

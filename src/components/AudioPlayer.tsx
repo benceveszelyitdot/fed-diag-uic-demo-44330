@@ -1,10 +1,12 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Play, Pause, Square, Upload } from "lucide-react";
+import { Play, Square, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 export const AudioPlayer = () => {
+  const [vetelActive, setVetelActive] = useState(false);
+  const [musorActive, setMusorActive] = useState(false);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -50,7 +52,22 @@ export const AudioPlayer = () => {
 
   return (
     <Card className="p-6 bg-card border-border">
-      <h2 className="text-lg font-semibold mb-4 text-foreground">Audio Player</h2>
+      <h2 className="text-lg font-semibold mb-4 text-foreground">UIC TTS bemondás</h2>
+      
+      <div className="flex items-center gap-4 mb-4">
+        {/* Indicator Lamps */}
+        <div className="flex gap-4">
+          <div className="flex flex-col items-center gap-1">
+            <div className={`w-8 h-8 rounded-full border-2 transition-all ${vetelActive ? 'bg-green-500 border-green-600 shadow-lg shadow-green-500/50' : 'bg-muted border-border'}`} />
+            <span className="text-xs text-muted-foreground font-medium">VÉTEL</span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <div className={`w-8 h-8 rounded-full border-2 transition-all ${musorActive ? 'bg-red-500 border-red-600 shadow-lg shadow-red-500/50' : 'bg-muted border-border'}`} />
+            <span className="text-xs text-muted-foreground font-medium">MŰSOR</span>
+          </div>
+        </div>
+      </div>
+
       <div className="flex items-center gap-3">
         <input
           ref={fileInputRef}
@@ -72,40 +89,33 @@ export const AudioPlayer = () => {
         ) : (
           <>
             <Button
-              onClick={handlePlay}
-              disabled={isPlaying}
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
-            >
-              <Play className="w-5 h-5" />
-            </Button>
-
-            <Button
-              onClick={handlePause}
-              disabled={!isPlaying}
-              size="lg"
-              className="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50"
-            >
-              <Pause className="w-5 h-5" />
-            </Button>
-
-            <Button
-              onClick={handleStop}
-              disabled={!audioFile}
-              size="lg"
-              variant="destructive"
-              className="disabled:opacity-50"
-            >
-              <Square className="w-5 h-5" />
-            </Button>
-
-            <Button
               onClick={() => fileInputRef.current?.click()}
               variant="outline"
               size="lg"
             >
               <Upload className="w-4 h-4 mr-2" />
-              Change File
+              Upload Audio
+            </Button>
+            
+            <Button
+              onClick={handlePlay}
+              disabled={isPlaying}
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
+            >
+              <Play className="w-5 h-5 mr-2" />
+              Play
+            </Button>
+
+            <Button
+              onClick={handleStop}
+              disabled={!isPlaying}
+              size="lg"
+              variant="destructive"
+              className="disabled:opacity-50"
+            >
+              <Square className="w-5 h-5 mr-2" />
+              Stop
             </Button>
           </>
         )}

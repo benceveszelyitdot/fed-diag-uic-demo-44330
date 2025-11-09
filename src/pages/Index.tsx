@@ -22,11 +22,16 @@ const generateHistoricalData = (baseValue: number, variance: number, points: num
 const Index = () => {
   const [temp1, setTemp1] = useState(22.5);
   const [temp2, setTemp2] = useState(45.3);
-  const [waterLevel, setWaterLevel] = useState(50);
+  const [waterLevel, setWaterLevel] = useState(75); // Default 75%
   
   const [temp1History, setTemp1History] = useState(() => generateHistoricalData(22.5, 5));
   const [temp2History, setTemp2History] = useState(() => generateHistoricalData(45.3, 8));
-  const [waterHistory, setWaterHistory] = useState(() => generateHistoricalData(50, 20));
+  const [waterHistory, setWaterHistory] = useState(() => 
+    Array(20).fill(null).map((_, i) => ({
+      time: new Date(Date.now() - (19 - i) * 5 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      value: 75
+    }))
+  );
 
   // Simulate real-time updates
   useEffect(() => {
@@ -49,12 +54,17 @@ const Index = () => {
         return clampedVal;
       });
 
-      // Update water level
+      // Update water level - only 25%, 50%, or 75%
       setWaterLevel(prev => {
-        const newVal = prev + (Math.random() - 0.5) * 5;
-        const clampedVal = Math.max(10, Math.min(90, newVal));
-        setWaterHistory(prev => [...prev.slice(1), { time: timeStr, value: clampedVal }]);
-        return clampedVal;
+        const possibleValues = [25, 50, 75];
+        const randomChange = Math.random();
+        // 80% chance to stay the same, 20% chance to change
+        let newVal = prev;
+        if (randomChange > 0.8) {
+          newVal = possibleValues[Math.floor(Math.random() * possibleValues.length)];
+        }
+        setWaterHistory(prevHistory => [...prevHistory.slice(1), { time: timeStr, value: newVal }]);
+        return newVal;
       });
     }, 5000); // Update every 5 seconds
 
@@ -65,8 +75,7 @@ const Index = () => {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Monitoring Dashboard</h1>
-          <p className="text-muted-foreground">Real-time sensor data and audio playback</p>
+          <h1 className="text-4xl font-bold text-foreground mb-2">FED_DIAG UIC DEMO - MÁV</h1>
         </header>
 
         <div className="space-y-6">
@@ -77,13 +86,13 @@ const Index = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
               <TemperatureGauge 
-                label="Temperature Sensor 1" 
+                label="Hőmérő 1" 
                 temperature={temp1}
                 min={0}
                 max={50}
               />
               <HistoricalChart 
-                title="Temperature 1 History"
+                title="Hőmérő 1 előző értékei"
                 data={temp1History}
                 color="hsl(var(--primary))"
                 unit="°C"
@@ -92,13 +101,13 @@ const Index = () => {
             
             <div className="space-y-4">
               <TemperatureGauge 
-                label="Temperature Sensor 2" 
+                label="Hőmérő 2" 
                 temperature={temp2}
                 min={0}
                 max={100}
               />
               <HistoricalChart 
-                title="Temperature 2 History"
+                title="Hőmérő 2 előző értékei"
                 data={temp2History}
                 color="hsl(var(--accent))"
                 unit="°C"
@@ -109,11 +118,11 @@ const Index = () => {
           {/* Water Level Indicator */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <WaterLevelIndicator 
-              label="Water Tank"
+              label="Víztartály"
               level={waterLevel}
             />
             <HistoricalChart 
-              title="Water Level History"
+              title="Vízszint előző értékei"
               data={waterHistory}
               color="hsl(var(--primary))"
               unit="%"

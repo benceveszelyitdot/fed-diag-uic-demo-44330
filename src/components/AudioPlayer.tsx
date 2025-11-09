@@ -1,8 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Play, Square, Upload } from "lucide-react";
 import { toast } from "sonner";
+
+const BACKEND_URL = 'http://localhost:3001';
+const WS_URL = 'ws://localhost:3001';
 
 export const AudioPlayer = () => {
   const [vetelActive, setVetelActive] = useState(false);
@@ -11,6 +14,43 @@ export const AudioPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+
+  // WebSocket connection for lamp state updates
+  useEffect(() => {
+    const ws = new WebSocket(WS_URL);
+    
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+    };
+    
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'lampUpdate') {
+          setVetelActive(data.lamps.vetel);
+          setMusorActive(data.lamps.musor);
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+      }
+    };
+    
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      toast.error('Backend connection error');
+    };
+    
+    ws.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
+    
+    wsRef.current = ws;
+    
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -27,15 +67,30 @@ export const AudioPlayer = () => {
     }
   };
 
-  const handlePlay = () => {
+  const handlePlay = async () => {
     if (!audioFile) {
       fileInputRef.current?.click();
       return;
     }
 
-    if (audioRef.current) {
-      audioRef.current.play();
-      setIsPlaying(true);
+    try {
+      // Send play command to backend
+      const response = await fetch(`${BACKEND_URL}/api/play`, {
+        method: 'POST',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Backend play command failed');
+      }
+      
+      // Start audio playback
+      if (audioRef.current) {
+        audioRef.current.play();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error('Play error:', error);
+      toast.error('Failed to start playback');
     }
   };
 
@@ -46,11 +101,26 @@ export const AudioPlayer = () => {
     }
   };
 
-  const handleStop = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsPlaying(false);
+  const handleStop = async () => {
+    try {
+      // Send stop command to backend (clears all lamps)
+      const response = await fetch(`${BACKEND_URL}/api/stop`, {
+        method: 'POST',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Backend stop command failed');
+      }
+      
+      // Stop audio playback
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        setIsPlaying(false);
+      }
+    } catch (error) {
+      console.error('Stop error:', error);
+      toast.error('Failed to stop playback');
     }
   };
 

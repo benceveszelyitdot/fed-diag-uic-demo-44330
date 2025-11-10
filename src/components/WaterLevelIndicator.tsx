@@ -62,7 +62,7 @@ export const WaterLevelIndicator = ({ label, level }: WaterLevelIndicatorProps) 
         {/* Current level display */}
         <div className="text-center">
           <div className="text-4xl font-bold text-foreground">{displayLevel}/3</div>
-          <div className="text-sm text-muted-foreground">Level</div>
+          <div className="text-sm text-muted-foreground">Szint</div>
           {isAtLowLevel && (
             <div className="mt-2 text-xs font-medium text-accent">Low Alert (1/3)</div>
           )}

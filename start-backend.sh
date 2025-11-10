@@ -26,7 +26,7 @@ fi
 
 # Compile TypeScript backend
 echo "Compiling backend..."
-npx tsc backend/uart-server.ts --outDir backend/dist --module commonjs --target es2020 --moduleResolution node --esModuleInterop
+npx tsc backend/uart-server.ts --outDir backend/dist --module es2020 --target es2020 --moduleResolution node --esModuleInterop
 
 echo ""
 echo "Backend server starting on port 3001..."

@@ -30,6 +30,7 @@ export const HistoricalChart = ({
           <YAxis 
             tick={{ fill: 'hsl(var(--muted-foreground))' }}
             style={{ fontSize: '12px' }}
+            domain={title.includes('Víztartály') ? [0, 1] : ['auto', 'auto']}
           />
           <Tooltip 
             contentStyle={{ 

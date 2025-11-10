@@ -4,32 +4,27 @@ import { TemperatureGauge } from "@/components/TemperatureGauge";
 import { WaterLevelIndicator } from "@/components/WaterLevelIndicator";
 import { HistoricalChart } from "@/components/HistoricalChart";
 
-// Generate mock historical data
-const generateHistoricalData = (baseValue: number, variance: number, points: number = 20) => {
-  const data = [];
-  const now = new Date();
-  for (let i = points - 1; i >= 0; i--) {
-    const time = new Date(now.getTime() - i * 5 * 60 * 1000); // 5 minute intervals
-    const value = baseValue + (Math.random() - 0.5) * variance;
-    data.push({
-      time: time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      value: Math.max(0, Math.min(100, value))
-    });
-  }
-  return data;
-};
-
 const Index = () => {
-  const [temp1, setTemp1] = useState(22.5);
-  const [temp2, setTemp2] = useState(35.3);
+  const [temp1, setTemp1] = useState(0);
+  const [temp2, setTemp2] = useState(0);
   const [waterLevel, setWaterLevel] = useState(2); // 1, 2, or 3
   
-  const [temp1History, setTemp1History] = useState(() => generateHistoricalData(22.5, 5));
-  const [temp2History, setTemp2History] = useState(() => generateHistoricalData(35.3, 8));
+  const [temp1History, setTemp1History] = useState(() => 
+    Array(20).fill(null).map((_, i) => ({
+      time: new Date(Date.now() - (19 - i) * 5 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      value: 0
+    }))
+  );
+  const [temp2History, setTemp2History] = useState(() => 
+    Array(20).fill(null).map((_, i) => ({
+      time: new Date(Date.now() - (19 - i) * 5 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      value: 0
+    }))
+  );
   const [waterHistory, setWaterHistory] = useState(() => 
     Array(20).fill(null).map((_, i) => ({
       time: new Date(Date.now() - (19 - i) * 5 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      value: 2
+      value: 0.66 // 2/3 normalized to 0-1 range
     }))
   );
 
@@ -58,7 +53,7 @@ const Index = () => {
         
         // Update water level (1, 2, or 3)
         setWaterLevel(sensors.waterLevel);
-        setWaterHistory(prev => [...prev.slice(1), { time: timeStr, value: sensors.waterLevel }]);
+        setWaterHistory(prev => [...prev.slice(1), { time: timeStr, value: sensors.waterLevel / 3 }]); // Normalize to 0-1
       }
     };
     
@@ -126,10 +121,10 @@ const Index = () => {
               level={waterLevel}
             />
             <HistoricalChart 
-              title="Vízszint előző értékei"
+              title="Víztartály szint előzmény"
               data={waterHistory}
-              color="hsl(var(--primary))"
-              unit="/3"
+              color="hsl(var(--chart-3))"
+              unit=""
             />
           </div>
         </div>

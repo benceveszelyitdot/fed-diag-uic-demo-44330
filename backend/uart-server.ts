@@ -23,7 +23,7 @@ let lampStates = {
 };
 
 let sensorData = {
-  waterLevel: 2, // 1, 2, or 3 (representing 1/3, 2/3, 3/3)
+  waterLevel: 1, // 1, 2, or 3 (representing 1/3, 2/3, 3/3) - default is 1 (full)
   temp1: 0,      // Temperature in celsius (will be divided by 10 from MCU response)
   temp2: 0       // Temperature in celsius (will be divided by 10 from MCU response)
 };
@@ -58,9 +58,17 @@ function initUART() {
       const rdiMatch = message.match(/<RDI:(\d)(\d)(\d)(\d)>/);
       if (rdiMatch) {
         const x = parseInt(rdiMatch[1]);
-        // x=1 means 1/3 (low), x=0 means 2/3 or above
-        sensorData.waterLevel = x === 1 ? 1 : 2;
-        console.log('Water level updated:', sensorData.waterLevel);
+        const y = parseInt(rdiMatch[2]);
+        // x=1 means at low 1/3 state (low alert)
+        // y=1 means above 2/3, y=0 means below 2/3
+        if (x === 1) {
+          sensorData.waterLevel = 1; // Low 1/3 alert
+        } else if (y === 1) {
+          sensorData.waterLevel = 3; // Above 2/3 (full)
+        } else {
+          sensorData.waterLevel = 2; // Between 1/3 and 2/3
+        }
+        console.log('Water level updated:', sensorData.waterLevel, `(x=${x}, y=${y})`);
         broadcastSensorData();
       }
       
@@ -205,6 +213,11 @@ app.post('/api/play', async (req, res) => {
 app.post('/api/stop', async (req, res) => {
   try {
     console.log('Stopping audio and clearing lamps');
+    
+    // Send stop commands to MCU
+    await sendToMCU('<WFS000>');
+    await delay(10);
+    await sendToMCU('<WDS0>');
     
     // Turn off all lamps
     updateLampState('vetel', false);

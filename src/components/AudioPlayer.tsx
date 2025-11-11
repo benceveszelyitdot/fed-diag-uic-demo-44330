@@ -4,8 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Play, Square } from "lucide-react";
 import { toast } from "sonner";
 
-const BACKEND_URL = 'http://localhost:3001';
-const WS_URL = 'ws://localhost:3001';
+const BACKEND_URL = 'http://192.168.2.216:3001';
+const WS_URL = 'ws://192.168.2.216:3001';
 const AUDIO_FILE_PATH = '/opt/infopix/fed-diag-uic-demo-44330/vaganyzar_felolvasva.wav';
 
 export const AudioPlayer = () => {

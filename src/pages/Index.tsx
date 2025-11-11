@@ -30,7 +30,7 @@ const Index = () => {
 
   // Connect to backend WebSocket for real-time sensor updates
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:3001');
+    const ws = new WebSocket('ws://192.168.2.216:3001');
     
     ws.onopen = () => {
       console.log('Connected to sensor WebSocket');

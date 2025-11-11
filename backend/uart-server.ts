@@ -3,6 +3,7 @@ import cors from 'cors';
 import { WebSocketServer } from 'ws';
 import { SerialPort } from 'serialport';
 import { createServer } from 'http';
+import { exec } from "child_process";
 
 const app = express();
 const server = createServer(app);
@@ -12,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 // UART Configuration
-const UART_PORT = '/dev/ttyS0';
+const UART_PORT = '/dev/ttyAMA0';
 const UART_BAUDRATE = 115200;
 
 let serialPort: SerialPort;
@@ -180,6 +181,18 @@ app.post('/api/play', async (req, res) => {
     await sendToMCU('<WDS1>');
     await delay(1000);
     await sendToMCU('<WFS100>');
+
+    exec("/opt/infopix/start.sh", (error, stdout, stderr) => {
+      if (error) {
+        console.error(`PLAY Error: ${error.message}`);
+        return;
+      }
+      if (stderr) {
+        console.error(`PLAY Stderr: ${stderr}`);
+        return;
+      }
+      console.log(`PLAY Output:\n${stdout}`);
+    });
     
     res.json({ success: true, message: 'Audio sequence started' });
   } catch (error) {
@@ -197,6 +210,18 @@ app.post('/api/stop', async (req, res) => {
     updateLampState('vetel', false);
     updateLampState('musor', false);
     
+    exec("/opt/infopix/stop.sh", (error, stdout, stderr) => {
+      if (error) {
+        console.error(`PLAY Error: ${error.message}`);
+        return;
+      }
+      if (stderr) {
+        console.error(`PLAY Stderr: ${stderr}`);
+        return;
+      }
+      console.log(`PLAY Output:\n${stdout}`);
+    });
+
     res.json({ success: true, message: 'Stopped and cleared lamps' });
   } catch (error) {
     console.error('Error in stop sequence:', error);

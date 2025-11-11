@@ -7,7 +7,7 @@ import { HistoricalChart } from "@/components/HistoricalChart";
 const Index = () => {
   const [temp1, setTemp1] = useState(0);
   const [temp2, setTemp2] = useState(0);
-  const [waterLevel, setWaterLevel] = useState(1); // 1, 2, or 3 (default full)
+  const [waterLevel, setWaterLevel] = useState(2); // 0, 1, or 2 (default at 2/3)
   
   const [temp1History, setTemp1History] = useState(() => 
     Array(20).fill(null).map((_, i) => ({
@@ -24,7 +24,7 @@ const Index = () => {
   const [waterHistory, setWaterHistory] = useState(() => 
     Array(20).fill(null).map((_, i) => ({
       time: new Date(Date.now() - (19 - i) * 5 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      value: 0.33 // 1/3 normalized to 0-1 range (default full)
+      value: 0.66 // 2/3 normalized (default at 2/3)
     }))
   );
 
@@ -62,9 +62,9 @@ const Index = () => {
         setTemp2(sensors.temp2);
         setTemp2History(prev => [...prev.slice(1), { time: timeStr, value: sensors.temp2 }]);
         
-        // Update water level (1, 2, or 3)
+        // Update water level (0, 1, or 2)
         setWaterLevel(sensors.waterLevel);
-        setWaterHistory(prev => [...prev.slice(1), { time: timeStr, value: sensors.waterLevel / 3 }]); // Normalize to 0-1
+        setWaterHistory(prev => [...prev.slice(1), { time: timeStr, value: sensors.waterLevel / 3 }]); // Normalize: 0→0, 1→0.33, 2→0.66
       }
     };
     

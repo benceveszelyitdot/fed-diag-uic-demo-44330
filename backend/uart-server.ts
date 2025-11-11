@@ -23,7 +23,7 @@ let lampStates = {
 };
 
 let sensorData = {
-  waterLevel: 1, // 1, 2, or 3 (representing 1/3, 2/3, 3/3) - default is 1 (full)
+  waterLevel: 2, // 0, 1, or 2 (representing below 1/3, 1/3, 2/3) - default is 2 (full at 2/3)
   temp1: 0,      // Temperature in celsius (will be divided by 10 from MCU response)
   temp2: 0       // Temperature in celsius (will be divided by 10 from MCU response)
 };
@@ -59,15 +59,15 @@ function initUART() {
       if (rdiMatch) {
         const x = parseInt(rdiMatch[1]);
         const y = parseInt(rdiMatch[2]);
-        // Prioritize higher sensor: y=2/3 sensor, x=1/3 sensor
-        // y=1 means above 2/3, y=0 means below 2/3
-        // x=1 means above 1/3, x=0 means below 1/3
+        // x = 1/3 sensor (1 = above 1/3, 0 = below 1/3)
+        // y = 2/3 sensor (1 = above 2/3, 0 = below 2/3)
+        // Display logic: y=1 → 2/3, x=1 → 1/3, both 0 → below 1/3
         if (y === 1) {
-          sensorData.waterLevel = 3; // At or above 2/3 (full)
+          sensorData.waterLevel = 2; // At 2/3 (0.66)
         } else if (x === 1) {
-          sensorData.waterLevel = 2; // Between 1/3 and 2/3
+          sensorData.waterLevel = 1; // At 1/3 (0.33)
         } else {
-          sensorData.waterLevel = 1; // Below 1/3 (low alert)
+          sensorData.waterLevel = 0; // Below 1/3 (low alert)
         }
         console.log('Water level updated:', sensorData.waterLevel, `(x=${x}, y=${y})`);
         broadcastSensorData();

@@ -59,14 +59,15 @@ function initUART() {
       if (rdiMatch) {
         const x = parseInt(rdiMatch[1]);
         const y = parseInt(rdiMatch[2]);
-        // x=1 means at low 1/3 state (low alert)
+        // Prioritize higher sensor: y=2/3 sensor, x=1/3 sensor
         // y=1 means above 2/3, y=0 means below 2/3
-        if (x === 1) {
-          sensorData.waterLevel = 1; // Low 1/3 alert
-        } else if (y === 1) {
-          sensorData.waterLevel = 3; // Above 2/3 (full)
-        } else {
+        // x=1 means above 1/3, x=0 means below 1/3
+        if (y === 1) {
+          sensorData.waterLevel = 3; // At or above 2/3 (full)
+        } else if (x === 1) {
           sensorData.waterLevel = 2; // Between 1/3 and 2/3
+        } else {
+          sensorData.waterLevel = 1; // Below 1/3 (low alert)
         }
         console.log('Water level updated:', sensorData.waterLevel, `(x=${x}, y=${y})`);
         broadcastSensorData();

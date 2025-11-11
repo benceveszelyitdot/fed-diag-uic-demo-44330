@@ -30,7 +30,18 @@ const Index = () => {
 
   // Connect to backend WebSocket for real-time sensor updates
   useEffect(() => {
-    const ws = new WebSocket('ws://192.168.2.216:3001');
+    // Use secure WebSocket when page is served over HTTPS
+    const isSecure = window.location.protocol === 'https:';
+    const isLovablePreview = window.location.hostname.includes('lovableproject.com');
+    
+    // Skip backend connection in Lovable preview
+    if (isLovablePreview) {
+      console.log('Backend not configured - running in preview mode');
+      return;
+    }
+    
+    const WS_URL = `${isSecure ? 'wss' : 'ws'}://192.168.2.216:3001`;
+    const ws = new WebSocket(WS_URL);
     
     ws.onopen = () => {
       console.log('Connected to sensor WebSocket');

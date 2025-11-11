@@ -4,8 +4,15 @@ import { Card } from "@/components/ui/card";
 import { Play, Square } from "lucide-react";
 import { toast } from "sonner";
 
-const BACKEND_URL = 'http://192.168.2.216:3001';
-const WS_URL = 'ws://192.168.2.216:3001';
+// Use secure WebSocket when page is served over HTTPS, insecure when over HTTP
+const isSecure = window.location.protocol === 'https:';
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const isLovablePreview = window.location.hostname.includes('lovableproject.com');
+
+// Only attempt backend connection in local development
+const BACKEND_HOST = isLovablePreview ? null : '192.168.2.216:3001';
+const BACKEND_URL = BACKEND_HOST ? `http://${BACKEND_HOST}` : null;
+const WS_URL = BACKEND_HOST ? `${isSecure ? 'wss' : 'ws'}://${BACKEND_HOST}` : null;
 const AUDIO_FILE_PATH = '/opt/infopix/fed-diag-uic-demo-44330/vaganyzar_felolvasva.wav';
 
 export const AudioPlayer = () => {
@@ -17,6 +24,12 @@ export const AudioPlayer = () => {
 
   // WebSocket connection for lamp state updates
   useEffect(() => {
+    // Skip WebSocket connection if no backend configured (e.g., Lovable preview)
+    if (!WS_URL) {
+      console.log('Backend not configured - running in preview mode');
+      return;
+    }
+
     const ws = new WebSocket(WS_URL);
     
     ws.onopen = () => {
@@ -37,7 +50,6 @@ export const AudioPlayer = () => {
     
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
-      toast.error('Backend connection error');
     };
     
     ws.onclose = () => {
@@ -52,6 +64,11 @@ export const AudioPlayer = () => {
   }, []);
 
   const handlePlay = async () => {
+    if (!BACKEND_URL) {
+      toast.error('Backend not available in preview mode');
+      return;
+    }
+
     try {
       // Send play command to backend
       const response = await fetch(`${BACKEND_URL}/api/play`, {
@@ -81,6 +98,11 @@ export const AudioPlayer = () => {
   };
 
   const handleStop = async () => {
+    if (!BACKEND_URL) {
+      toast.error('Backend not available in preview mode');
+      return;
+    }
+
     try {
       // Send stop command to backend (clears all lamps)
       const response = await fetch(`${BACKEND_URL}/api/stop`, {
